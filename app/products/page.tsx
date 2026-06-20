@@ -201,15 +201,15 @@ function ProductsContent() {
             )}
 
             {loading ? (
-              <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5 gap-3">
-                {Array.from({ length: 8 }).map((_, i) => (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(148px, 1fr))', gap: '12px' }}>
+                {Array.from({ length: 12 }).map((_, i) => (
                   <div key={i} className="rounded-xl border border-gray-100 bg-white overflow-hidden">
-                    <Skeleton className="h-48 rounded-none" />
-                    <div className="p-4 space-y-2">
-                      <Skeleton className="h-3 w-16" />
-                      <Skeleton className="h-4 w-full" />
-                      <Skeleton className="h-4 w-3/4" />
-                      <Skeleton className="h-8 w-full mt-2" />
+                    <Skeleton className="h-32 rounded-none" />
+                    <div className="p-2.5 space-y-1.5">
+                      <Skeleton className="h-3 w-full" />
+                      <Skeleton className="h-3 w-3/4" />
+                      <Skeleton className="h-4 w-16 mt-1" />
+                      <Skeleton className="h-7 w-full mt-1" />
                     </div>
                   </div>
                 ))}
@@ -225,7 +225,7 @@ function ProductsContent() {
               </div>
             ) : (
               <>
-                <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(148px, 1fr))', gap: '12px' }}>
                   {products.map((product) => (
                     <ProductCard key={product.id} product={product} />
                   ))}
