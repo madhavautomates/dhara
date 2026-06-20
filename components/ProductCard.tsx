@@ -101,9 +101,9 @@ export default function ProductCard({ product }: ProductCardProps) {
                 <span className="text-sm font-bold text-gray-900">
                   ₹{product.price.toFixed(0)}
                 </span>
-                {product.mrp > 0 && product.mrp > product.price && (
+                {(product.mrp ?? 0) > 0 && (product.mrp ?? 0) > product.price && (
                   <span className="text-[11px] text-gray-400 line-through">
-                    ₹{product.mrp.toFixed(0)}
+                    ₹{(product.mrp ?? 0).toFixed(0)}
                   </span>
                 )}
               </>
