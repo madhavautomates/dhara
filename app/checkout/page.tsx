@@ -33,7 +33,7 @@ export default function CheckoutPage() {
   const [authLoading, setAuthLoading] = useState(true)
   const [placing, setPlacing] = useState(false)
   const [form, setForm] = useState<CheckoutForm>({
-    name: '', email: '', phone: '', address: '', city: 'Indore', pincode: '', notes: '',
+    name: '', email: '', phone: '', address: '', city: 'Kasrawad', pincode: '451551', notes: '',
   })
 
   const subtotal = total()

@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { Pill, Phone, Mail, MapPin } from 'lucide-react'
+import { Pill, Phone, Mail, MapPin, ExternalLink } from 'lucide-react'
 
 export default function Footer() {
   return (
@@ -15,7 +15,7 @@ export default function Footer() {
               <span>MediShop</span>
             </div>
             <p className="text-sm text-gray-500 leading-relaxed">
-              Your trusted medical store in Indore. We deliver genuine medicines and healthcare products right to your doorstep.
+              Your trusted medical store in Kasrawad, Barwani. Genuine medicines and healthcare products delivered right to your doorstep.
             </p>
           </div>
 
@@ -44,7 +44,20 @@ export default function Footer() {
             <ul className="space-y-3">
               <li className="flex items-start gap-2 text-sm text-gray-500">
                 <MapPin className="h-4 w-4 text-sky-500 mt-0.5 shrink-0" />
-                <span>Indore, Madhya Pradesh, India</span>
+                <div>
+                  <p>Amit Nagar Colony, Road NavalPura,</p>
+                  <p>Kasrawad, Barwani,</p>
+                  <p>Madhya Pradesh — 451551</p>
+                  <a
+                    href="https://share.google/V4HWF4oHOTg2h1f0F"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 mt-1 text-sky-600 hover:underline text-xs font-medium"
+                  >
+                    View on Google Maps
+                    <ExternalLink className="h-3 w-3" />
+                  </a>
+                </div>
               </li>
               <li className="flex items-center gap-2 text-sm text-gray-500">
                 <Phone className="h-4 w-4 text-sky-500 shrink-0" />
