@@ -26,7 +26,7 @@ const categories = [
 ]
 
 const features = [
-  { icon: Truck, title: 'Fast Delivery', desc: 'Same day delivery in Indore city area', color: 'text-sky-500' },
+  { icon: Truck, title: 'Fast Delivery', desc: 'Same day delivery in Barwani district', color: 'text-sky-500' },
   { icon: ShieldCheck, title: 'Genuine Products', desc: '100% authentic medicines from licensed distributors', color: 'text-green-500' },
   { icon: Tag, title: 'Best Prices', desc: 'Lowest prices guaranteed on all products', color: 'text-orange-500' },
   { icon: RotateCcw, title: 'Easy Returns', desc: 'Hassle-free returns within 7 days', color: 'text-purple-500' },
@@ -47,7 +47,7 @@ export default async function HomePage() {
           <div className="max-w-3xl">
             <div className="inline-flex items-center gap-2 rounded-full bg-white/20 px-3 py-1 text-sm font-medium mb-6 backdrop-blur-sm">
               <span className="h-2 w-2 rounded-full bg-green-400" />
-              Delivering in Kasrawad, Barwani, MP
+              Delivering in Barwani, MP
             </div>
             <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold leading-tight mb-4">
               Your Trusted Medical Store in{' '}

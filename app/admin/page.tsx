@@ -40,14 +40,19 @@ export default function AdminDashboard() {
     const init = async () => {
       const { data: authData } = await supabase.auth.getUser()
       const user = authData.user
+      console.log('[admin] user email:', user?.email)
+      console.log('[admin] expected:', process.env.NEXT_PUBLIC_ADMIN_EMAIL)
       if (!user || user.email !== process.env.NEXT_PUBLIC_ADMIN_EMAIL) {
+        console.log('[admin] auth failed — redirecting')
         router.push('/')
         return
       }
       const token = await getToken()
+      console.log('[admin] token:', token ? 'present' : 'MISSING')
       const res = await fetch('/api/admin/stats', {
         headers: { Authorization: `Bearer ${token}` },
       })
+      console.log('[admin] stats response:', res.status)
       if (!res.ok) { router.push('/'); return }
       const data = await res.json()
       setStats(data)

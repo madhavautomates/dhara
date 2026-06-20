@@ -7,6 +7,8 @@ import { useState, useEffect } from 'react'
 import { useCartStore } from '@/store/cart'
 import { supabase } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
+import { Dialog, DialogContent } from '@/components/ui/dialog'
+import EmailOTPModal from '@/components/EmailOTPModal'
 import type { User as SupabaseUser } from '@supabase/supabase-js'
 
 export default function Navbar() {
@@ -15,6 +17,7 @@ export default function Navbar() {
   const { itemCount, openCart } = useCartStore()
   const [user, setUser] = useState<SupabaseUser | null>(null)
   const [menuOpen, setMenuOpen] = useState(false)
+  const [loginOpen, setLoginOpen] = useState(false)
   const count = itemCount()
 
   useEffect(() => {
@@ -108,7 +111,7 @@ export default function Navbar() {
                 variant="outline"
                 size="sm"
                 className="hidden md:flex"
-                onClick={() => router.push('/checkout')}
+                onClick={() => setLoginOpen(true)}
               >
                 <User className="h-4 w-4 mr-1" />
                 Login
@@ -166,7 +169,7 @@ export default function Navbar() {
                   <Button
                     size="sm"
                     className="w-full"
-                    onClick={() => { router.push('/checkout'); setMenuOpen(false) }}
+                    onClick={() => { setLoginOpen(true); setMenuOpen(false) }}
                   >
                     <User className="h-4 w-4 mr-2" />
                     Login
@@ -177,6 +180,12 @@ export default function Navbar() {
           </div>
         )}
       </div>
+
+      <Dialog open={loginOpen} onOpenChange={setLoginOpen}>
+        <DialogContent className="sm:max-w-md">
+          <EmailOTPModal onSuccess={() => setLoginOpen(false)} />
+        </DialogContent>
+      </Dialog>
     </nav>
   )
 }
