@@ -51,7 +51,7 @@ export default async function HomePage() {
             </div>
             <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold leading-tight mb-4">
               Your Trusted Medical Store in{' '}
-              <span className="text-yellow-300">Kasrawad</span>
+              <span className="text-yellow-300">Barwani</span>
             </h1>
             <p className="text-lg sm:text-xl text-sky-100 mb-8 max-w-xl">
               Fast delivery at your doorstep. Genuine medicines, vitamins, and healthcare products at the best prices.
@@ -144,7 +144,7 @@ export default async function HomePage() {
             Need medicines delivered today?
           </h2>
           <p className="text-sky-100 mb-6 max-w-md mx-auto">
-            Order before 6 PM for same-day delivery in Kasrawad. Free delivery on orders above ₹500.
+            Order before 6 PM for same-day delivery in Barwani. Free delivery on orders above ₹500.
           </p>
           <Button size="lg" className="bg-white text-sky-700 hover:bg-sky-50 font-semibold" asChild>
             <Link href="/products">

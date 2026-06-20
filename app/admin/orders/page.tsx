@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, ChevronDown, ChevronUp, RefreshCw } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
+import { isAdminEmail } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -145,7 +146,7 @@ export default function AdminOrdersPage() {
 
   useEffect(() => {
     supabase.auth.getUser().then(async ({ data }) => {
-      if (data.user?.email !== process.env.NEXT_PUBLIC_ADMIN_EMAIL) {
+      if (!isAdminEmail(data.user?.email)) {
         router.push('/'); return
       }
       const token = await getToken()

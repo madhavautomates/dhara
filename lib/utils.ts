@@ -24,3 +24,12 @@ export function formatDate(date: string): string {
 
 export const DELIVERY_FREE_THRESHOLD = 500
 export const DELIVERY_CHARGE = 40
+
+export function isAdminEmail(email: string | null | undefined): boolean {
+  if (!email) return false
+  const list = (process.env.NEXT_PUBLIC_ADMIN_EMAILS ?? '')
+    .split(',')
+    .map((e) => e.trim().toLowerCase())
+    .filter(Boolean)
+  return list.includes(email.toLowerCase())
+}

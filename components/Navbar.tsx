@@ -7,6 +7,7 @@ import { useState, useEffect } from 'react'
 import { useCartStore } from '@/store/cart'
 import { supabase } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
+import { isAdminEmail } from '@/lib/utils'
 import { Dialog, DialogContent } from '@/components/ui/dialog'
 import EmailOTPModal from '@/components/EmailOTPModal'
 import type { User as SupabaseUser } from '@supabase/supabase-js'
@@ -34,7 +35,7 @@ export default function Navbar() {
     router.push('/')
   }
 
-  const isAdmin = user?.email === process.env.NEXT_PUBLIC_ADMIN_EMAIL
+  const isAdmin = isAdminEmail(user?.email)
   const links = [
     { href: '/', label: 'Home' },
     { href: '/products', label: 'Products' },

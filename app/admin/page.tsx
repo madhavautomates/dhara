@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ShoppingBag, Package, TrendingUp, Clock, Eye } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
+import { isAdminEmail } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { formatPrice, formatDate } from '@/lib/utils'
@@ -41,8 +42,8 @@ export default function AdminDashboard() {
       const { data: authData } = await supabase.auth.getUser()
       const user = authData.user
       console.log('[admin] user email:', user?.email)
-      console.log('[admin] expected:', process.env.NEXT_PUBLIC_ADMIN_EMAIL)
-      if (!user || user.email !== process.env.NEXT_PUBLIC_ADMIN_EMAIL) {
+      console.log('[admin] expected:', process.env.NEXT_PUBLIC_ADMIN_EMAILS)
+      if (!user || !isAdminEmail(user.email)) {
         console.log('[admin] auth failed — redirecting')
         router.push('/')
         return

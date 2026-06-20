@@ -6,6 +6,7 @@ import Image from 'next/image'
 import { Plus, Edit, Trash2, Pill, Upload, X, ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
+import { isAdminEmail } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -62,7 +63,7 @@ export default function AdminProductsPage() {
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
-      if (data.user?.email !== process.env.NEXT_PUBLIC_ADMIN_EMAIL) {
+      if (!isAdminEmail(data.user?.email)) {
         router.push('/')
       } else {
         fetchProducts()
