@@ -6,7 +6,6 @@ import Image from 'next/image'
 import { Plus, Edit, Trash2, Pill, Upload, X, ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
-import { supabaseAdmin } from '@/lib/supabase-admin'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -23,20 +22,31 @@ import type { Product } from '@/types'
 import { toast } from 'sonner'
 
 interface ProductForm {
-  name: string
-  description: string
-  category: string
-  price: string
-  mrp: string
-  stock: string
-  requires_prescription: boolean
-  is_active: boolean
-  image_url: string
+  name: string; description: string; category: string
+  price: string; mrp: string; stock: string
+  requires_prescription: boolean; is_active: boolean; image_url: string
 }
 
 const emptyForm: ProductForm = {
   name: '', description: '', category: '', price: '', mrp: '', stock: '',
   requires_prescription: false, is_active: true, image_url: '',
+}
+
+async function getToken() {
+  const { data } = await supabase.auth.getSession()
+  return data.session?.access_token ?? ''
+}
+
+async function authFetch(url: string, options: RequestInit = {}) {
+  const token = await getToken()
+  return fetch(url, {
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+      ...(options.headers ?? {}),
+    },
+  })
 }
 
 export default function AdminProductsPage() {
@@ -62,32 +72,19 @@ export default function AdminProductsPage() {
 
   const fetchProducts = async () => {
     setLoading(true)
-    const { data } = await supabaseAdmin
-      .from('products')
-      .select('*')
-      .order('created_at', { ascending: false })
-    setProducts(data ?? [])
+    const res = await authFetch('/api/admin/products')
+    if (res.ok) setProducts(await res.json())
     setLoading(false)
   }
 
-  const openAdd = () => {
-    setEditing(null)
-    setForm(emptyForm)
-    setModalOpen(true)
-  }
+  const openAdd = () => { setEditing(null); setForm(emptyForm); setModalOpen(true) }
 
   const openEdit = (p: Product) => {
     setEditing(p)
     setForm({
-      name: p.name,
-      description: p.description ?? '',
-      category: p.category,
-      price: String(p.price),
-      mrp: p.mrp ? String(p.mrp) : '',
-      stock: String(p.stock),
-      requires_prescription: p.requires_prescription,
-      is_active: p.is_active,
-      image_url: p.image_url ?? '',
+      name: p.name, description: p.description ?? '', category: p.category,
+      price: String(p.price), mrp: p.mrp ? String(p.mrp) : '', stock: String(p.stock),
+      requires_prescription: p.requires_prescription, is_active: p.is_active, image_url: p.image_url ?? '',
     })
     setModalOpen(true)
   }
@@ -96,59 +93,59 @@ export default function AdminProductsPage() {
     const file = e.target.files?.[0]
     if (!file) return
     setUploading(true)
-    const ext = file.name.split('.').pop()
-    const path = `products/${Date.now()}.${ext}`
-    const { error } = await supabaseAdmin.storage.from('product-images').upload(path, file)
-    if (error) { toast.error('Upload failed'); setUploading(false); return }
-    const { data: urlData } = supabaseAdmin.storage.from('product-images').getPublicUrl(path)
-    setForm((f) => ({ ...f, image_url: urlData.publicUrl }))
+    const token = await getToken()
+    const fd = new FormData()
+    fd.append('file', file)
+    const res = await fetch('/api/admin/upload', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
+      body: fd,
+    })
+    const data = await res.json()
+    if (!res.ok) { toast.error(data.error ?? 'Upload failed'); setUploading(false); return }
+    setForm((f) => ({ ...f, image_url: data.url }))
     setUploading(false)
     toast.success('Image uploaded')
   }
 
   const handleSave = async () => {
     if (!form.name || !form.category || !form.price || !form.stock) {
-      toast.error('Fill all required fields')
-      return
+      toast.error('Fill all required fields'); return
     }
     setSaving(true)
     const payload = {
-      name: form.name,
-      description: form.description || null,
-      category: form.category,
-      price: Number(form.price),
-      mrp: form.mrp ? Number(form.mrp) : null,
-      stock: Number(form.stock),
-      requires_prescription: form.requires_prescription,
-      is_active: form.is_active,
+      name: form.name, description: form.description || null,
+      category: form.category, price: Number(form.price),
+      mrp: form.mrp ? Number(form.mrp) : null, stock: Number(form.stock),
+      requires_prescription: form.requires_prescription, is_active: form.is_active,
       image_url: form.image_url || null,
     }
-
-    if (editing) {
-      const { error } = await supabaseAdmin.from('products').update(payload).eq('id', editing.id)
-      if (error) { toast.error('Update failed'); setSaving(false); return }
-      toast.success('Product updated')
-    } else {
-      const { error } = await supabaseAdmin.from('products').insert(payload)
-      if (error) { toast.error('Create failed'); setSaving(false); return }
-      toast.success('Product added')
-    }
-
+    const url = editing ? `/api/admin/products/${editing.id}` : '/api/admin/products'
+    const method = editing ? 'PATCH' : 'POST'
+    const res = await authFetch(url, { method, body: JSON.stringify(payload) })
+    const data = await res.json()
     setSaving(false)
+    if (!res.ok) { toast.error(data.error ?? 'Failed to save'); return }
+    toast.success(editing ? 'Product updated' : 'Product added')
     setModalOpen(false)
     fetchProducts()
   }
 
   const handleDelete = async (id: string) => {
-    const { error } = await supabaseAdmin.from('products').delete().eq('id', id)
-    if (error) { toast.error('Delete failed'); return }
+    const res = await authFetch(`/api/admin/products/${id}`, { method: 'DELETE' })
+    if (!res.ok) { toast.error('Delete failed'); return }
     toast.success('Product deleted')
-    fetchProducts()
+    setProducts((ps) => ps.filter((p) => p.id !== id))
   }
 
   const toggleActive = async (product: Product) => {
-    await supabaseAdmin.from('products').update({ is_active: !product.is_active }).eq('id', product.id)
-    setProducts((ps) => ps.map((p) => p.id === product.id ? { ...p, is_active: !p.is_active } : p))
+    const res = await authFetch(`/api/admin/products/${product.id}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ is_active: !product.is_active }),
+    })
+    if (res.ok) {
+      setProducts((ps) => ps.map((p) => p.id === product.id ? { ...p, is_active: !p.is_active } : p))
+    }
   }
 
   return (
@@ -165,8 +162,7 @@ export default function AdminProductsPage() {
             </div>
           </div>
           <Button onClick={openAdd}>
-            <Plus className="h-4 w-4 mr-2" />
-            Add Product
+            <Plus className="h-4 w-4 mr-2" />Add Product
           </Button>
         </div>
 
@@ -181,9 +177,7 @@ export default function AdminProductsPage() {
                 <thead>
                   <tr className="border-b border-gray-100 bg-gray-50">
                     {['Product', 'Category', 'Price', 'MRP', 'Stock', 'Active', 'Actions'].map((h) => (
-                      <th key={h} className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">
-                        {h}
-                      </th>
+                      <th key={h} className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">{h}</th>
                     ))}
                   </tr>
                 </thead>
@@ -203,15 +197,11 @@ export default function AdminProductsPage() {
                           </div>
                           <div>
                             <p className="font-medium text-gray-900 max-w-40 truncate">{product.name}</p>
-                            {product.requires_prescription && (
-                              <Badge variant="destructive" className="text-[10px] px-1 py-0">Rx</Badge>
-                            )}
+                            {product.requires_prescription && <Badge variant="destructive" className="text-[10px] px-1 py-0">Rx</Badge>}
                           </div>
                         </div>
                       </td>
-                      <td className="px-4 py-3">
-                        <Badge variant="secondary">{product.category}</Badge>
-                      </td>
+                      <td className="px-4 py-3"><Badge variant="secondary">{product.category}</Badge></td>
                       <td className="px-4 py-3 font-semibold text-sky-600">{formatPrice(product.price)}</td>
                       <td className="px-4 py-3 text-gray-400 line-through">{product.mrp ? formatPrice(product.mrp) : '—'}</td>
                       <td className="px-4 py-3">
@@ -236,9 +226,7 @@ export default function AdminProductsPage() {
                             <AlertDialogContent>
                               <AlertDialogHeader>
                                 <AlertDialogTitle>Delete Product?</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  This will permanently delete &ldquo;{product.name}&rdquo;. This action cannot be undone.
-                                </AlertDialogDescription>
+                                <AlertDialogDescription>This will permanently delete &ldquo;{product.name}&rdquo;.</AlertDialogDescription>
                               </AlertDialogHeader>
                               <AlertDialogFooter>
                                 <AlertDialogCancel>Cancel</AlertDialogCancel>
@@ -260,14 +248,12 @@ export default function AdminProductsPage() {
         </div>
       </div>
 
-      {/* Add/Edit Modal */}
       <Dialog open={modalOpen} onOpenChange={setModalOpen}>
         <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{editing ? 'Edit Product' : 'Add New Product'}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            {/* Image Upload */}
             <div>
               <Label>Product Image</Label>
               <div className="mt-1 flex items-center gap-3">
@@ -275,15 +261,12 @@ export default function AdminProductsPage() {
                   {form.image_url ? (
                     <Image src={form.image_url} alt="preview" fill className="object-contain p-1" sizes="64px" />
                   ) : (
-                    <div className="flex h-full items-center justify-center">
-                      <Pill className="h-8 w-8 text-gray-300" />
-                    </div>
+                    <div className="flex h-full items-center justify-center"><Pill className="h-8 w-8 text-gray-300" /></div>
                   )}
                 </div>
                 <div className="flex gap-2">
                   <Button variant="outline" size="sm" type="button" onClick={() => fileRef.current?.click()} loading={uploading}>
-                    <Upload className="h-4 w-4 mr-1" />
-                    Upload
+                    <Upload className="h-4 w-4 mr-1" />Upload
                   </Button>
                   {form.image_url && (
                     <Button variant="ghost" size="icon-sm" onClick={() => setForm((f) => ({ ...f, image_url: '' }))}>
@@ -300,7 +283,6 @@ export default function AdminProductsPage() {
                 className="mt-2 text-xs"
               />
             </div>
-
             <div>
               <Label>Name *</Label>
               <Input value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} className="mt-1" placeholder="Product name" />
@@ -312,9 +294,7 @@ export default function AdminProductsPage() {
             <div>
               <Label>Category *</Label>
               <Select value={form.category} onValueChange={(v) => setForm((f) => ({ ...f, category: v }))}>
-                <SelectTrigger className="mt-1">
-                  <SelectValue placeholder="Select category" />
-                </SelectTrigger>
+                <SelectTrigger className="mt-1"><SelectValue placeholder="Select category" /></SelectTrigger>
                 <SelectContent>
                   {CATEGORIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
                 </SelectContent>

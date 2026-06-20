@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, ChevronDown, ChevronUp, RefreshCw } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
-import { supabaseAdmin } from '@/lib/supabase-admin'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -23,6 +22,11 @@ const statusConfig: Record<OrderStatus, { label: string; variant: 'warning' | 'd
   cancelled: { label: 'Cancelled', variant: 'destructive' },
 }
 
+async function getToken() {
+  const { data } = await supabase.auth.getSession()
+  return data.session?.access_token ?? ''
+}
+
 function OrderCard({ order, onStatusChange }: { order: OrderWithItems; onStatusChange: (id: string, status: OrderStatus) => void }) {
   const [expanded, setExpanded] = useState(false)
   const [updating, setUpdating] = useState(false)
@@ -30,11 +34,16 @@ function OrderCard({ order, onStatusChange }: { order: OrderWithItems; onStatusC
 
   const handleStatus = async (newStatus: OrderStatus) => {
     setUpdating(true)
-    const { error } = await supabaseAdmin.from('orders').update({ status: newStatus }).eq('id', order.id)
+    const token = await getToken()
+    const res = await fetch(`/api/admin/orders/${order.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ status: newStatus }),
+    })
     setUpdating(false)
-    if (error) { toast.error('Failed to update status'); return }
+    if (!res.ok) { toast.error('Failed to update status'); return }
     onStatusChange(order.id, newStatus)
-    toast.success(`Order status updated to ${newStatus}`)
+    toast.success(`Status updated to ${newStatus}`)
   }
 
   return (
@@ -90,7 +99,6 @@ function OrderCard({ order, onStatusChange }: { order: OrderWithItems; onStatusC
               </div>
             )}
           </div>
-
           <div className="space-y-2 mb-4">
             <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Items</p>
             {order.order_items.map((item) => (
@@ -107,7 +115,6 @@ function OrderCard({ order, onStatusChange }: { order: OrderWithItems; onStatusC
               <span className="text-sky-600">{formatPrice(order.total_amount)}</span>
             </div>
           </div>
-
           <div className="flex items-center gap-3">
             <p className="text-sm font-medium text-gray-700">Update Status:</p>
             <div className="flex-1 max-w-48">
@@ -117,9 +124,7 @@ function OrderCard({ order, onStatusChange }: { order: OrderWithItems; onStatusC
                 </SelectTrigger>
                 <SelectContent>
                   {ORDER_STATUSES.map((s: OrderStatus) => (
-                    <SelectItem key={s} value={s}>
-                      {statusConfig[s].label}
-                    </SelectItem>
+                    <SelectItem key={s} value={s}>{statusConfig[s].label}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -139,24 +144,18 @@ export default function AdminOrdersPage() {
   const [activeTab, setActiveTab] = useState('all')
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
+    supabase.auth.getUser().then(async ({ data }) => {
       if (data.user?.email !== process.env.NEXT_PUBLIC_ADMIN_EMAIL) {
-        router.push('/')
-        return
+        router.push('/'); return
       }
-      fetchOrders()
+      const token = await getToken()
+      const res = await fetch('/api/admin/orders', {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      if (res.ok) setOrders(await res.json())
+      setLoading(false)
     })
   }, [router])
-
-  const fetchOrders = async () => {
-    setLoading(true)
-    const { data } = await supabaseAdmin
-      .from('orders')
-      .select('*, order_items(*)')
-      .order('created_at', { ascending: false })
-    setOrders(data ?? [])
-    setLoading(false)
-  }
 
   const handleStatusChange = (id: string, status: OrderStatus) => {
     setOrders((os) => os.map((o) => o.id === id ? { ...o, status } : o))
@@ -196,7 +195,7 @@ export default function AdminOrdersPage() {
                   className="rounded-full border border-gray-200 bg-white px-3 py-1.5 text-sm data-[state=active]:bg-sky-500 data-[state=active]:text-white data-[state=active]:border-sky-500 data-[state=active]:shadow-none"
                 >
                   {tab.label}
-                  <span className="ml-1.5 rounded-full bg-gray-100 px-1.5 py-0.5 text-xs font-semibold data-[state=active]:bg-white/20 data-[state=active]:text-white">
+                  <span className="ml-1.5 rounded-full bg-gray-100 px-1.5 py-0.5 text-xs font-semibold data-[state=active]:bg-sky/20">
                     {tab.count}
                   </span>
                 </TabsTrigger>
