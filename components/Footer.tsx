@@ -45,8 +45,8 @@ export default function Footer() {
               <li className="flex items-start gap-2 text-sm text-gray-500">
                 <MapPin className="h-4 w-4 text-sky-500 mt-0.5 shrink-0" />
                 <div>
-                  <p>Amit Nagar Colony, Road NavalPura,</p>
-                  <p>Kasrawad, Barwani,</p>
+                  <p>Shop No. 2, Amit Nagar Colony,</p>
+                  <p>NavalPura, Kasrawad Barwani Road,</p>
                   <p>Madhya Pradesh — 451551</p>
                   <a
                     href="https://share.google/V4HWF4oHOTg2h1f0F"
