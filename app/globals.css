@@ -1,0 +1,61 @@
+@import "tailwindcss";
+
+@layer utilities {
+  .animate-in {
+    animation-name: enter;
+    animation-duration: 200ms;
+    animation-fill-mode: both;
+  }
+  .animate-out {
+    animation-name: exit;
+    animation-duration: 150ms;
+    animation-fill-mode: both;
+  }
+  .fade-in-0 { --tw-enter-opacity: 0; }
+  .fade-out-0 { --tw-exit-opacity: 0; }
+  .zoom-in-95 { --tw-enter-scale: .95; }
+  .zoom-out-95 { --tw-exit-scale: .95; }
+  .slide-in-from-right { --tw-enter-translate-x: 100%; }
+  .line-clamp-2 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+}
+
+@keyframes enter {
+  from {
+    opacity: var(--tw-enter-opacity, 1);
+    transform: translate(var(--tw-enter-translate-x, 0), var(--tw-enter-translate-y, 0))
+      scale(var(--tw-enter-scale, 1));
+  }
+}
+
+@keyframes exit {
+  to {
+    opacity: var(--tw-exit-opacity, 1);
+    transform: translate(var(--tw-exit-translate-x, 0), var(--tw-exit-translate-y, 0))
+      scale(var(--tw-exit-scale, 1));
+  }
+}
+
+:root {
+  --background: #ffffff;
+  --foreground: #0f172a;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
